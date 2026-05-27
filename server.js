@@ -31,6 +31,23 @@ app.post("/trade", (req, res) => {
     balance
   });
 });
+// LOGIN ROUTE
+app.post("/login", (req,res)=>{
 
+const {broker, accountId, password} = req.body;
+
+if(!broker || !accountId || !password){
+return res.status(400).json({
+error:"Missing login details"
+});
+}
+
+res.json({
+status:"connected",
+broker,
+accountId
+});
+
+});
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log("Running on port " + PORT));
