@@ -3,60 +3,67 @@ const app = express();
 
 app.use(express.json());
 
+// state
 let account = {
-    balance: 100,
-    trades: []
+  balance: 100,
+  trades: []
 };
 
-// Home
-app.get("/", (req,res)=>{
-    res.send("Venom trading engine online");
+// HOME
+app.get("/", (req, res) => {
+  res.send("Venom trading engine online");
 });
 
-// Balance
-app.get("/balance",(req,res)=>{
-    res.json(account);
+// BALANCE
+app.get("/balance", (req, res) => {
+  res.json(account);
 });
 
-// Trade
-app.post("/trade",(req,res)=>{
+// TRADE
+app.post("/trade", (req, res) => {
+  const { type, lot } = req.body;
 
-    const {type, lot} = req.body;
+  if (!type || !lot) {
+    return res.status(400).json({ error: "Missing type or lot" });
+  }
 
-    if(!type || !lot){
-        return res.status(400).json({
-            error:"Missing fields"
-        });
-    }
+  const win = Math.random() > 0.5;
 
-    let trade = {
-        id: Date.now(),
-        type,
-        lot,
-        result:"RUNNING"
-    };
+  const trade = {
+    id: Date.now(),
+    type,
+    lot,
+    result: win ? "WIN" : "LOSS"
+  };
 
-    account.trades.push(trade);
+  account.trades.push(trade);
+  account.balance += win ? 1 : -1;
 
-    setTimeout(()=>{
-
-        const win = Math.random() > 0.5;
-
-        trade.result = win ? "WIN" : "LOSS";
-
-        account.balance += win ? 1 : -1;
-
-    },5000);
-
-    res.json({
-        message:"Trade opened",
-        trade
-    });
-
+  res.json({
+    message: "Trade executed",
+    trade,
+    balance: account.balance
+  });
 });
 
+// LOGIN
+app.post("/login", (req, res) => {
+  const { broker, accountId, password } = req.body;
+
+  if (!broker || !accountId || !password) {
+    return res.status(400).json({ error: "Missing login details" });
+  }
+
+  res.json({
+    status: "connected",
+    broker,
+    accountId
+  });
+});
+
+// START
 const PORT = process.env.PORT || 10000;
 
-app.listen(PORT,()=>{
-console.log("Venom engine running");
+app.listen(PORT, () => {
+  console.log("Venom engine running on port " + PORT);
 });
