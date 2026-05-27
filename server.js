@@ -3,51 +3,60 @@ const app = express();
 
 app.use(express.json());
 
-let balance = 100;
+let account = {
+    balance: 100,
+    trades: []
+};
 
-app.get("/", (req, res) => {
-  res.send("Backend running");
+// Home
+app.get("/", (req,res)=>{
+    res.send("Venom trading engine online");
 });
 
-app.get("/balance", (req, res) => {
-  res.json({ balance });
+// Balance
+app.get("/balance",(req,res)=>{
+    res.json(account);
 });
 
-app.post("/trade", (req, res) => {
-  const { type, lot } = req.body;
+// Trade
+app.post("/trade",(req,res)=>{
 
-  if (!type || !lot) {
-    return res.status(400).json({ error: "Missing type or lot" });
-  }
+    const {type, lot} = req.body;
 
-  const win = Math.random() > 0.5;
+    if(!type || !lot){
+        return res.status(400).json({
+            error:"Missing fields"
+        });
+    }
 
-  balance += win ? 1 : -1;
+    let trade = {
+        id: Date.now(),
+        type,
+        lot,
+        result:"RUNNING"
+    };
 
-  res.json({
-    type,
-    lot,
-    result: win ? "WIN" : "LOSS",
-    balance
-  });
+    account.trades.push(trade);
+
+    setTimeout(()=>{
+
+        const win = Math.random() > 0.5;
+
+        trade.result = win ? "WIN" : "LOSS";
+
+        account.balance += win ? 1 : -1;
+
+    },5000);
+
+    res.json({
+        message:"Trade opened",
+        trade
+    });
+
 });
-// LOGIN ROUTE
-app.post("/login", (req,res)=>{
 
-const {broker, accountId, password} = req.body;
-
-if(!broker || !accountId || !password){
-return res.status(400).json({
-error:"Missing login details"
-});
-}
-
-res.json({
-status:"connected",
-broker,
-accountId
-});
-
-});
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("Running on port " + PORT));
+
+app.listen(PORT,()=>{
+console.log("Venom engine running");
+});
